@@ -16,3 +16,6 @@ nuscenes_devkit
 joblib
 easydict
 open3d-python
+terminaltables
+pytest-runner
+addict

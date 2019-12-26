@@ -1,6 +1,8 @@
 import pathlib
 import pickle
 import numpy as np
+from skimage import io
+import re
 
 from collections import OrderedDict
 from pathlib import Path
@@ -97,14 +99,14 @@ def _calculate_num_points_in_gt(
 
 
 def create_kitti_info_file(data_path, save_path=None, relative_path=True):
-    imageset_folder = Path(__file__).resolve().parent / "ImageSets"
-    train_img_ids = _read_imageset_file(str(imageset_folder / "debug_train.txt"))
+    imageset_folder = data_path / "Kitti" / "ImageSets"
+    train_img_ids = _read_imageset_file(str(imageset_folder / "train.txt"))
     val_img_ids = _read_imageset_file(str(imageset_folder / "val.txt"))
     test_img_ids = _read_imageset_file(str(imageset_folder / "test.txt"))
 
     print("Generate info. this may take several minutes.")
     if save_path is None:
-        save_path = Path(data_path)
+        save_path = data_path / "Kitti" / "object"
     else:
         save_path = Path(save_path)
 
@@ -117,11 +119,10 @@ def create_kitti_info_file(data_path, save_path=None, relative_path=True):
         relative_path=relative_path,
     )
     _calculate_num_points_in_gt(data_path, kitti_infos_train, relative_path)
-    filename = save_path / "kitti_infos_train_debug.pkl"
+    filename = save_path / "kitti_infos_train.pkl"
     print(f"Kitti info train file is saved to {filename}")
     with open(filename, "wb") as f:
         pickle.dump(kitti_infos_train, f)
-    """
     kitti_infos_val = get_kitti_image_info(data_path,
                                            training=True,
                                            velodyne=True,
@@ -129,26 +130,25 @@ def create_kitti_info_file(data_path, save_path=None, relative_path=True):
                                            image_ids=val_img_ids,
                                            relative_path=relative_path)
     _calculate_num_points_in_gt(data_path, kitti_infos_val, relative_path)
-    filename = save_path / 'kitti_infos_val_debug.pkl'
+    filename = save_path / 'kitti_infos_val.pkl'
     print(f"Kitti info val file is saved to {filename}")
     with open(filename, 'wb') as f:
         pickle.dump(kitti_infos_val, f)
-    filename = save_path / 'kitti_infos_trainval_debug.pkl'
+    filename = save_path / 'kitti_infos_trainval.pkl'
     print(f"Kitti info trainval file is saved to {filename}")
     with open(filename, 'wb') as f:
         pickle.dump(kitti_infos_train + kitti_infos_val, f)
     kitti_infos_test = get_kitti_image_info(data_path,
-                                                  training=False,
-                                                  label_info=False,
-                                                  velodyne=True,
-                                                  calib=True,
-                                                  image_ids=test_img_ids,
-                                                  relative_path=relative_path)
-    filename = save_path / 'kitti_infos_test_debug.pkl'
+                                            training=False,
+                                            label_info=False,
+                                            velodyne=True,
+                                            calib=True,
+                                            image_ids=test_img_ids,
+                                            relative_path=relative_path)
+    filename = save_path / 'kitti_infos_test.pkl'
     print(f"Kitti info test file is saved to {filename}")
     with open(filename, 'wb') as f:
         pickle.dump(kitti_infos_test, f)
-    """
 
 
 def _create_reduced_point_cloud(data_path, info_path, save_path=None, back=False):
@@ -198,15 +198,15 @@ def create_reduced_point_cloud(
     with_back=False,
 ):
     if train_info_path is None:
-        train_info_path = Path(data_path) / "kitti_infos_train_debug.pkl"
+        train_info_path = Path(data_path) / "Kitti" / "object" / "kitti_infos_train.pkl"
     if val_info_path is None:
-        val_info_path = Path(data_path) / "kitti_infos_val_debug.pkl"
+        val_info_path = Path(data_path) / "Kitti" / "object" / "kitti_infos_val.pkl"
     if test_info_path is None:
-        test_info_path = Path(data_path) / "kitti_infos_test_debug.pkl"
+        test_info_path = Path(data_path) / "Kitti" / "object" / "kitti_infos_test.pkl"
 
     _create_reduced_point_cloud(data_path, train_info_path, save_path)
-    # _create_reduced_point_cloud(data_path, val_info_path, save_path)
-    # _create_reduced_point_cloud(data_path, test_info_path, save_path)
+    _create_reduced_point_cloud(data_path, val_info_path, save_path)
+    _create_reduced_point_cloud(data_path, test_info_path, save_path)
     if with_back:
         _create_reduced_point_cloud(data_path, train_info_path, save_path, back=True)
         _create_reduced_point_cloud(data_path, val_info_path, save_path, back=True)
@@ -214,9 +214,6 @@ def create_reduced_point_cloud(
         #                             test_info_path,
         #                             save_path,
         #                             back=True)
-
-    def load_annotations(self, ann_file):
-        pass
 
 
 def area(boxes, add1=False):
@@ -840,19 +837,19 @@ def add_difficulty_to_annos_v2(info):
     truncation = annos["truncated"]
     diff = []
     easy_mask = not (
-        (occlusion > max_occlusion[0])
-        or (height < min_height[0])
-        or (truncation > max_trunc[0])
+        (occlusion > max_occlusion[0]) or
+        (height < min_height[0]) or
+        (truncation > max_trunc[0])
     )
     moderate_mask = not (
-        (occlusion > max_occlusion[1])
-        or (height < min_height[1])
-        or (truncation > max_trunc[1])
+        (occlusion > max_occlusion[1]) or
+        (height < min_height[1]) or
+        (truncation > max_trunc[1])
     )
     hard_mask = not (
-        (occlusion > max_occlusion[2])
-        or (height < min_height[2])
-        or (truncation > max_trunc[2])
+        (occlusion > max_occlusion[2]) or
+        (height < min_height[2]) or
+        (truncation > max_trunc[2])
     )
     is_easy = easy_mask
     is_moderate = np.logical_xor(easy_mask, moderate_mask)

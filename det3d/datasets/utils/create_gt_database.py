@@ -59,6 +59,9 @@ def create_groundtruth_database(
     if dataset_class_name == "NUSC":
         db_path = root_path / f"gt_database_{nsweeps}sweeps_withvelo"
         dbinfo_path = root_path / f"dbinfos_train_{nsweeps}sweeps_withvelo.pkl"
+    elif dataset_class_name == "KITTI":
+        db_path = root_path / "Kitti" / "object" / "gt_database"
+        dbinfo_path = root_path / "Kitti" / "object" / "dbinfos_train.pkl"
     else:
         db_path = root_path / "gt_database"
         dbinfo_path = root_path / "dbinfos_train.pkl"

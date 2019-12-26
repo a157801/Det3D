@@ -10,11 +10,12 @@ from det3d.datasets.lyft import lyft_common as lyft_ds
 from det3d.datasets.utils.create_gt_database import create_groundtruth_database
 
 
-def kitti_data_prep(root_path):
-    kitti_ds.create_kitti_info_file(root_path)
-    kitti_ds.create_reduced_point_cloud(root_path)
+def kitti_data_prep():
+    data_path = Path("./data/KITTI").resolve()
+    kitti_ds.create_kitti_info_file(data_path)
+    kitti_ds.create_reduced_point_cloud(data_path)
     create_groundtruth_database(
-        "KITTI", root_path, Path(root_path) / "kitti_infos_train.pkl"
+        "KITTI", data_path, Path(data_path) / "Kitti" / "object" / "kitti_infos_train.pkl"
     )
 
 

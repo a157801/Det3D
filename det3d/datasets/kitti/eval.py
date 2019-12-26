@@ -140,14 +140,14 @@ def fused_compute_statistics(
     for i in range(gt_nums.shape[0]):
         for t, thresh in enumerate(thresholds):
             overlap = overlaps[
-                dt_num : dt_num + dt_nums[i], gt_num : gt_num + gt_nums[i]
+                dt_num: dt_num + dt_nums[i], gt_num: gt_num + gt_nums[i]
             ]
 
-            gt_data = gt_datas[gt_num : gt_num + gt_nums[i]]
-            dt_data = dt_datas[dt_num : dt_num + dt_nums[i]]
-            ignored_gt = ignored_gts[gt_num : gt_num + gt_nums[i]]
-            ignored_det = ignored_dets[dt_num : dt_num + dt_nums[i]]
-            dontcare = dontcares[dc_num : dc_num + dc_nums[i]]
+            gt_data = gt_datas[gt_num: gt_num + gt_nums[i]]
+            dt_data = dt_datas[dt_num: dt_num + dt_nums[i]]
+            ignored_gt = ignored_gts[gt_num: gt_num + gt_nums[i]]
+            ignored_det = ignored_dets[dt_num: dt_num + dt_nums[i]]
+            dontcare = dontcares[dc_num: dc_num + dc_nums[i]]
             tp, fp, fn, similarity, _ = compute_statistics_jit(
                 overlap,
                 gt_data,
@@ -259,24 +259,24 @@ def eval_class_v3(
                 idx = 0
                 for j, num_part in enumerate(split_parts):
                     gt_datas_part = np.concatenate(
-                        gt_datas_list[idx : idx + num_part], 0
+                        gt_datas_list[idx: idx + num_part], 0
                     )
                     dt_datas_part = np.concatenate(
-                        dt_datas_list[idx : idx + num_part], 0
+                        dt_datas_list[idx: idx + num_part], 0
                     )
-                    dc_datas_part = np.concatenate(dontcares[idx : idx + num_part], 0)
+                    dc_datas_part = np.concatenate(dontcares[idx: idx + num_part], 0)
                     ignored_dets_part = np.concatenate(
-                        ignored_dets[idx : idx + num_part], 0
+                        ignored_dets[idx: idx + num_part], 0
                     )
                     ignored_gts_part = np.concatenate(
-                        ignored_gts[idx : idx + num_part], 0
+                        ignored_gts[idx: idx + num_part], 0
                     )
                     fused_compute_statistics(
                         parted_overlaps[j],
                         pr,
-                        total_gt_num[idx : idx + num_part],
-                        total_dt_num[idx : idx + num_part],
-                        total_dc_num[idx : idx + num_part],
+                        total_gt_num[idx: idx + num_part],
+                        total_dt_num[idx: idx + num_part],
+                        total_dc_num[idx: idx + num_part],
                         gt_datas_part,
                         dt_datas_part,
                         dc_datas_part,
@@ -428,7 +428,8 @@ def do_coco_style_eval(
     min_overlaps = np.zeros([10, *overlap_ranges.shape[1:]])
     for i in range(overlap_ranges.shape[1]):
         for j in range(overlap_ranges.shape[2]):
-            min_overlaps[:, i, j] = np.linspace(*overlap_ranges[:, i, j])
+            start, stop, num = overlap_ranges[:, i, j]
+            min_overlaps[:, i, j] = np.linspace(start, stop, int(num))
     mAP_bbox, mAP_bev, mAP_3d, mAP_aos = do_eval_v2(
         gt_annos,
         dt_annos,
@@ -513,7 +514,7 @@ def get_official_eval_result(
     # TODO dt2gt
     metrics = do_eval_v3(
         gt_annos,
-        gt_annos,
+        dt_annos,
         current_classes,
         min_overlaps,
         compute_aos,

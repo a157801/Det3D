@@ -19,3 +19,7 @@ open3d-python
 terminaltables
 pytest-runner
 addict
+pycocotools
+imagecorruptions
+objgraph
+lyft_dataset_sdk
